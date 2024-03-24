@@ -19,6 +19,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
+    void openFolder(QString);
     ~MainWindow();
 
 private:
@@ -35,5 +36,6 @@ signals:
 public slots:
     void getBaseDir();
     void searchFolder();
+    void folderOpenHandler(const QModelIndex&);
 };
 #endif // MAINWINDOW_H

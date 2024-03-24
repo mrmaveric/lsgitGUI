@@ -28,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::getBaseDir);
     QObject::connect(this, &MainWindow::searchNextFolder, this, &MainWindow::searchFolder);
     QObject::connect(testTimer, &QTimer::timeout, this, &MainWindow::searchFolder);
+    QObject::connect(ui->listView, &QListView::doubleClicked, this, &MainWindow::folderOpenHandler);
 
     testTimer->setSingleShot(false);
     testTimer->setInterval(0);
@@ -51,8 +52,6 @@ void MainWindow::getBaseDir()
 
     if (result.isEmpty()) return;
 
-    //QUrl folderUrl = QUrl::fromLocalFile(result);
-    //QDesktopServices::openUrl(folderUrl);
 
     basePath = result;
     folderQueue->enqueue(result);
@@ -81,4 +80,17 @@ void MainWindow::searchFolder()
     foreach (const QFileInfo &folder, workingFolder.entryInfoList()){
         folderQueue->enqueue(folder.absoluteFilePath());
     }
+}
+
+void MainWindow::folderOpenHandler(const QModelIndex &index)
+{
+    QString clickedItemText = index.data().toString();
+    qDebug() << "Double-clicked item:" << clickedItemText;
+    openFolder(clickedItemText);
+}
+
+void MainWindow::openFolder(QString folder)
+{
+    QUrl folderUrl = QUrl::fromLocalFile(folder);
+    QDesktopServices::openUrl(folderUrl);
 }
