@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QQueue>
 #include <QTimer>
+#include <QStandardItemModel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -26,6 +27,7 @@ private:
     QString basePath;
     QQueue<QString> *folderQueue;
     QTimer *testTimer;
+    QStandardItemModel *foundFolders;
 
 signals:
     void searchNextFolder();

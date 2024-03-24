@@ -13,10 +13,12 @@ MainWindow::MainWindow(QWidget *parent)
     , statusText(new QLabel)
     , folderQueue(new QQueue<QString>)
     , testTimer(new QTimer)
+    , foundFolders(new QStandardItemModel)
 {
     // Status bar setup
     ui->setupUi(this);
     ui->statusbar->addPermanentWidget(statusText);
+    ui->listView->setModel(foundFolders);
 
     basePath = QDir::homePath();
 
@@ -25,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(this, &MainWindow::searchNextFolder, this, &MainWindow::searchFolder);
     QObject::connect(testTimer, &QTimer::timeout, this, &MainWindow::searchFolder);
 
-    testTimer->setSingleShot(true);
+    testTimer->setSingleShot(false);
     testTimer->setInterval(1);
 
 }
@@ -38,6 +40,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::getBaseDir()
 {
+    testTimer->stop();
     QString result = QFileDialog::getExistingDirectory(
         nullptr,
         "Choose a starting directory for git project search",
@@ -48,16 +51,22 @@ void MainWindow::getBaseDir()
 
     basePath = result;
     folderQueue->enqueue(result);
+    foundFolders->clear();
     testTimer->start();
 }
 
 
 void MainWindow::searchFolder()
 {
-    if (folderQueue->isEmpty()) return;
+    if (folderQueue->isEmpty()) {
+        testTimer->stop();
+        return;
+    }
 
     QString currentFolder = folderQueue->dequeue();
     qDebug() << "Scan folder: " << currentFolder;
+
+    foundFolders->appendRow(new QStandardItem(currentFolder));
 
     QDir workingFolder(currentFolder);
     workingFolder.setFilter(QDir::Dirs|QDir::NoDotAndDotDot);
@@ -65,6 +74,4 @@ void MainWindow::searchFolder()
     foreach (const QFileInfo &folder, workingFolder.entryInfoList()){
         folderQueue->enqueue(folder.absoluteFilePath());
     }
-
-    testTimer->start();
 }
