@@ -5,6 +5,8 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QString>
+#include <QDesktopServices>
+#include <QUrl>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -48,6 +50,9 @@ void MainWindow::getBaseDir()
         );
 
     if (result.isEmpty()) return;
+
+    //QUrl folderUrl = QUrl::fromLocalFile(result);
+    //QDesktopServices::openUrl(folderUrl);
 
     basePath = result;
     folderQueue->enqueue(result);
