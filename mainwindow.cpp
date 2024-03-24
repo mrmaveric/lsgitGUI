@@ -59,12 +59,14 @@ void MainWindow::getBaseDir()
 void MainWindow::searchFolder()
 {
     if (folderQueue->isEmpty()) {
+        statusText->setText("Test complete");
         testTimer->stop();
         return;
     }
 
     QString currentFolder = folderQueue->dequeue();
     qDebug() << "Scan folder: " << currentFolder;
+    ui->statusbar->showMessage(currentFolder, 1000);
 
     foundFolders->appendRow(new QStandardItem(currentFolder));
 
