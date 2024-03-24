@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(testTimer, &QTimer::timeout, this, &MainWindow::searchFolder);
 
     testTimer->setSingleShot(false);
-    testTimer->setInterval(1);
+    testTimer->setInterval(0);
 
 }
 
