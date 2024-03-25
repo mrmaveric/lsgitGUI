@@ -98,6 +98,7 @@ void MainWindow::searchFolder()
     if (!isGitDir(currentFolder)) return;
 
     foundFolders->appendRow(new QStandardItem(currentFolder));
+    foundFolders->sort(0);
 }
 
 // Slot for passing selected item to folder opening function
