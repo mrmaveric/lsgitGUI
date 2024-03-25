@@ -6,6 +6,7 @@
 #include <QQueue>
 #include <QTimer>
 #include <QStandardItemModel>
+#include <QVector>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -19,8 +20,9 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    void openFolder(QString);
     ~MainWindow();
+    void openFolder(QString);
+    bool isGitDir(QString);
 
 private:
     Ui::MainWindow *ui;
@@ -29,6 +31,7 @@ private:
     QQueue<QString> *folderQueue;
     QTimer *testTimer;
     QStandardItemModel *foundFolders;
+    QVector<QString> gitDirSignature;
 
 signals:
     void searchNextFolder();

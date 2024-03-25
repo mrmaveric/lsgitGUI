@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->listView->setModel(foundFolders);
 
     basePath = QDir::homePath();
+    gitDirSignature = {"HEAD", "config", "description", "hooks", "objects", "refs"};
 
     // Signals and slots for this class
     QObject::connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::getBaseDir);
@@ -54,7 +55,6 @@ void MainWindow::getBaseDir()
 
     if (result.isEmpty()) return;
 
-
     basePath = result;
     folderQueue->enqueue(result);
     foundFolders->clear();
@@ -74,14 +74,16 @@ void MainWindow::searchFolder()
     qDebug() << "Scan folder: " << currentFolder;
     ui->statusbar->showMessage(currentFolder, 1000);
 
-    foundFolders->appendRow(new QStandardItem(currentFolder));
-
     QDir workingFolder(currentFolder);
     workingFolder.setFilter(QDir::Dirs|QDir::NoDotAndDotDot);
 
     foreach (const QFileInfo &folder, workingFolder.entryInfoList()){
         folderQueue->enqueue(folder.absoluteFilePath());
     }
+
+    if (!isGitDir(currentFolder)) return;
+
+    foundFolders->appendRow(new QStandardItem(currentFolder));
 }
 
 void MainWindow::folderOpenHandler(const QModelIndex &index)
@@ -95,4 +97,28 @@ void MainWindow::openFolder(QString folder)
 {
     QUrl folderUrl = QUrl::fromLocalFile(folder);
     QDesktopServices::openUrl(folderUrl);
+}
+
+bool MainWindow::isGitDir(QString folder)
+{
+    bool headless = true;
+    bool standard = true;
+
+    QDir currentDir(folder);
+    if (!currentDir.exists()) return false;
+
+    foreach (const QString &piece, gitDirSignature) {
+        if (!currentDir.exists(piece)) standard = false;
+    }
+
+    currentDir.cd(".git");
+    if (currentDir.exists()) {
+        foreach (const QString &piece, gitDirSignature) {
+            if (!currentDir.exists(piece)) headless = false;
+        }
+    } else {
+        standard = false;
+    }
+
+    return headless | standard;
 }
