@@ -35,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
     testTimer->setSingleShot(false);
     testTimer->setInterval(0);
 
+    ui->pushButton->click();
 }
 
 MainWindow::~MainWindow()
