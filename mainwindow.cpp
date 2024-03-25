@@ -44,6 +44,8 @@ MainWindow::~MainWindow()
 void MainWindow::getBaseDir()
 {
     testTimer->stop();
+    statusText->setText("");
+    folderQueue->clear();
     QString result = QFileDialog::getExistingDirectory(
         nullptr,
         "Choose a starting directory for git project search",
@@ -63,7 +65,7 @@ void MainWindow::getBaseDir()
 void MainWindow::searchFolder()
 {
     if (folderQueue->isEmpty()) {
-        statusText->setText("Test complete");
+        statusText->setText("Search complete");
         testTimer->stop();
         return;
     }
