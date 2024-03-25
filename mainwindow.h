@@ -19,7 +19,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr, QString baseDir = "");
     ~MainWindow();
     void openFolder(QString);
     bool isGitDir(QString);

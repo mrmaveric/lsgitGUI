@@ -9,7 +9,7 @@
 #include <QUrl>
 
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget *parent, QString baseDir)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , statusText(new QLabel)
@@ -23,9 +23,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->listView->setModel(foundFolders);
     setWindowTitle("Find local git repositories");
 
-    // Default to home dir for the file dialog
-    basePath = QDir::homePath();
-
     // The list of files/folders I expect to see in a git project
     gitDirSignature = {"HEAD", "config", "description", "hooks", "objects", "refs"};
 
@@ -38,6 +35,20 @@ MainWindow::MainWindow(QWidget *parent)
     // Setup looping timer that calls the crawler as fast as possible (cludge; should be worker thread)
     testTimer->setSingleShot(false);
     testTimer->setInterval(0);
+
+    if (!baseDir.isEmpty()) {
+        QDir testBaseDir(baseDir);
+
+        if (testBaseDir.exists()){
+            basePath = baseDir;
+            folderQueue->enqueue(baseDir);
+            testTimer->start();
+            return;
+        }
+    }
+
+    // Default to home dir for the file dialog
+    basePath = QDir::homePath();
 
     // Opening the folder selection dialog box at startup to save the user (me) time
     ui->pushButton->click();
@@ -85,7 +96,6 @@ void MainWindow::searchFolder()
     }
 
     QString currentFolder = folderQueue->dequeue();
-    qDebug() << "Scan folder: " << currentFolder;
     ui->statusbar->showMessage(currentFolder, 1000);
 
     QDir workingFolder(currentFolder);
