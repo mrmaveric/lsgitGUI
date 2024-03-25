@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->statusbar->addPermanentWidget(statusText);
     ui->listView->setModel(foundFolders);
+    setWindowTitle("Find local git repositories");
 
     basePath = QDir::homePath();
     gitDirSignature = {"HEAD", "config", "description", "hooks", "objects", "refs"};
