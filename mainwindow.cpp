@@ -17,13 +17,16 @@ MainWindow::MainWindow(QWidget *parent)
     , testTimer(new QTimer)
     , foundFolders(new QStandardItemModel)
 {
-    // Status bar setup
+    // UI Setup
     ui->setupUi(this);
     ui->statusbar->addPermanentWidget(statusText);
     ui->listView->setModel(foundFolders);
     setWindowTitle("Find local git repositories");
 
+    // Default to home dir for the file dialog
     basePath = QDir::homePath();
+
+    // The list of files/folders I expect to see in a git project
     gitDirSignature = {"HEAD", "config", "description", "hooks", "objects", "refs"};
 
     // Signals and slots for this class
@@ -32,9 +35,11 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(testTimer, &QTimer::timeout, this, &MainWindow::searchFolder);
     QObject::connect(ui->listView, &QListView::doubleClicked, this, &MainWindow::folderOpenHandler);
 
+    // Setup looping timer that calls the crawler as fast as possible (cludge; should be worker thread)
     testTimer->setSingleShot(false);
     testTimer->setInterval(0);
 
+    // Opening the folder selection dialog box at startup to save the user (me) time
     ui->pushButton->click();
 }
 
@@ -44,6 +49,9 @@ MainWindow::~MainWindow()
 }
 
 
+// Presents the user with a folder selector dialog box and if a folder is
+// chosen, adds the folder path the the queue and starts the looping timer
+// that calls the searchFolder crawler.
 void MainWindow::getBaseDir()
 {
     testTimer->stop();
@@ -64,6 +72,10 @@ void MainWindow::getBaseDir()
 }
 
 
+// Crawler that recurses through folder tree, adding subfolders to it's queue
+// and adding folders matching git projects to the output list.
+// This slot is currently called on a loop by a timer to get around crashing
+// issue; When the queue this function reads from is empty it stops the timer.
 void MainWindow::searchFolder()
 {
     if (folderQueue->isEmpty()) {
@@ -88,35 +100,39 @@ void MainWindow::searchFolder()
     foundFolders->appendRow(new QStandardItem(currentFolder));
 }
 
+// Slot for passing selected item to folder opening function
 void MainWindow::folderOpenHandler(const QModelIndex &index)
 {
     QString clickedItemText = index.data().toString();
-    qDebug() << "Double-clicked item:" << clickedItemText;
     openFolder(clickedItemText);
 }
 
+// Open the folder URL in the system default file navigator
 void MainWindow::openFolder(QString folder)
 {
     QUrl folderUrl = QUrl::fromLocalFile(folder);
     QDesktopServices::openUrl(folderUrl);
 }
 
+// Checks if the folder passed in is a git project or headless git project
 bool MainWindow::isGitDir(QString folder)
 {
     bool headless = true;
     bool standard = true;
 
+    // Is folder a headless git project
     QDir currentDir(folder);
     if (!currentDir.exists()) return false;
 
     foreach (const QString &piece, gitDirSignature) {
-        if (!currentDir.exists(piece)) standard = false;
+        if (!currentDir.exists(piece)) headless = false;
     }
 
+    // Is folder a regular git project
     currentDir.cd(".git");
     if (currentDir.exists()) {
         foreach (const QString &piece, gitDirSignature) {
-            if (!currentDir.exists(piece)) headless = false;
+            if (!currentDir.exists(piece)) standard = false;
         }
     } else {
         standard = false;
